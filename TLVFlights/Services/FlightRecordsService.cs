@@ -19,7 +19,7 @@ public class FlightRecordsService
         _logger = logger;
         _baseUrl = configuration?["ApiBaseUrl"] ??
                    "https://data.gov.il/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5";
-        _baseDomainAddress = configuration?["BaseDomainAddress"] ?? "https://data.gov.il/";
+        _baseDomainAddress = configuration?["BaseDomainAddress"] ?? "https://data.gov.il";
     }
 
     private async Task<List<FlightRecord>?> GetAllFlights()
