@@ -32,7 +32,7 @@ public class FlightRecordsService
         if (rootResult == null) return null;
         int total = rootResult.result.total;
 
-        while (_cachedFlights.Count != total && rootResult is {})
+        while (_cachedFlights.Count <= total && rootResult is {})
         {
             _cachedFlights.AddRange(rootResult.result.records.Select(FlightRecord.FromJsonRecord));
             rootResult = await GetApiResult(rootResult.result._links.next);
@@ -64,8 +64,8 @@ public class FlightRecordsService
 
     public async Task<int?> NumberOfFlights()
     {
-        var rootResult = await GetApiResult($"{_baseUrl}&limit=1",isRelative: false); // Full URL 
-        return rootResult?.result.total;
+        var allFlights = await GetAllFlights();
+        return allFlights?.Count;
     }
 
     public async Task<int?> NumberOfOutboundFlights() => 
