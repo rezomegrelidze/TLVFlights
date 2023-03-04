@@ -9,6 +9,7 @@ public class FlightRecordsService
     private readonly string _baseUrl;
     private readonly string _baseDomainAddress;
     private int limit = 300;
+    private bool _isFetchingFlights;
 
     private DateTime _lastTimeFetched;
 
@@ -24,21 +25,24 @@ public class FlightRecordsService
 
     private async Task<List<FlightRecord>?> GetAllFlights()
     {
+        while (_isFetchingFlights) // wait for other ongoing fetch to finish
+        {
+            await Task.Delay(100);
+        }
         // cache expires every minute!
         if (_cachedFlights is not null && ((DateTime.Now - _lastTimeFetched).Minutes <= 1)) return _cachedFlights;
-
+        _isFetchingFlights = true;
         _cachedFlights = new List<FlightRecord>();
         var rootResult = await GetApiResult($"{_baseUrl}&limit={limit}",isRelative: false); // Initial call which is full URL
         if (rootResult == null) return null;
-        int total = rootResult.result.total;
-
-        while (_cachedFlights.Count != total && rootResult is {})
+        while (rootResult is {} && rootResult.result.records.Any())
         {
             _cachedFlights.AddRange(rootResult.result.records.Select(FlightRecord.FromJsonRecord));
             rootResult = await GetApiResult(rootResult.result._links.next);
         }
 
         _lastTimeFetched = DateTime.Now;
+        _isFetchingFlights = false;
         return _cachedFlights;
     }
 
